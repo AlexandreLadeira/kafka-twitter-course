@@ -11,6 +11,12 @@ repositories {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+
+    implementation "ch.qos.logback:logback-classic:$logbackVersion"
+
+    implementation "org.apache.kafka:kafka-clients:$kafkaClientsVersion"
+
+    implementation "com.twitter:hbc-core:$twitterClientVersion"
 }
 
 compileKotlin {
