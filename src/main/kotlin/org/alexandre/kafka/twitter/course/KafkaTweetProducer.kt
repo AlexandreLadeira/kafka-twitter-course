@@ -77,6 +77,14 @@ class KafkaTweetProducer(
         properties.setProperty(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer::class.qualifiedName)
         properties.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer::class.qualifiedName)
 
+        properties.setProperty(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, "true")
+        // These properties are not necessary because we are setting ENABLE_IDEMPOTENCE_CONFIG to true
+        // But, since this is a POC, it is nice to have the configurations explicitly
+        properties.setProperty(ProducerConfig.ACKS_CONFIG, "all")
+        properties.setProperty(ProducerConfig.RETRIES_CONFIG, Int.MAX_VALUE.toString())
+        properties.setProperty(ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, "5")
+
+
         return KafkaProducer<String, String>(properties)
     }
 
