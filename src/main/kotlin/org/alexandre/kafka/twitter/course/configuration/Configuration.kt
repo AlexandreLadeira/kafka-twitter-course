@@ -1,17 +1,19 @@
 package org.alexandre.kafka.twitter.course.configuration
 
 import com.typesafe.config.ConfigFactory
-import org.alexandre.kafka.twitter.course.TwitterProducer
+import org.alexandre.kafka.twitter.course.KafkaTweetProducer
 
 object Configuration {
     private const val APPLICATION = "kafka-twitter-course"
 
     private val config = ConfigFactory.load().getConfig(APPLICATION)
 
-    val twitterProducer = TwitterProducer(
-        consumerKey = config.getString("twitter.consumer-key"),
-        consumerSecret = config.getString("twitter.consumer-secret"),
-        token = config.getString("twitter.token"),
-        tokenSecret = config.getString("twitter.token-secret")
+    val twitterProducer = KafkaTweetProducer(
+        twitterConsumerKey = config.getString("twitter.consumer-key"),
+        twitterConsumerSecret = config.getString("twitter.consumer-secret"),
+        twitterToken = config.getString("twitter.token"),
+        twitterTokenSecret = config.getString("twitter.token-secret"),
+        kafkaBootstrapServer = config.getString("kafka.bootstrap-server"),
+        kafkaTopic = config.getString("kafka.topic")
     )
 }
