@@ -17,6 +17,8 @@ dependencies {
     implementation "org.apache.kafka:kafka-clients:$kafkaClientsVersion"
 
     implementation "com.twitter:hbc-core:$twitterClientVersion"
+
+    implementation "com.typesafe:config:$typesafeConfigVersion"
 }
 
 compileKotlin {
