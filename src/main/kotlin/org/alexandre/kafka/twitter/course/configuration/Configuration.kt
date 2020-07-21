@@ -14,6 +14,7 @@ object Configuration {
         twitterToken = config.getString("twitter.token"),
         twitterTokenSecret = config.getString("twitter.token-secret"),
         kafkaBootstrapServer = config.getString("kafka.bootstrap-server"),
-        kafkaTopic = config.getString("kafka.topic")
+        kafkaTopic = config.getString("kafka.topic"),
+        termsToTrack = config.getStringList("twitter.terms-to-track")
     )
 }

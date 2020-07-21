@@ -23,12 +23,13 @@ class KafkaTweetProducer(
     private val twitterToken: String,
     private val twitterTokenSecret: String,
     private val kafkaBootstrapServer: String,
-    private val kafkaTopic: String
+    private val kafkaTopic: String,
+    private val termsToTrack: List<String>
 ) {
     private val msgQueue = LinkedBlockingQueue<String>(MSG_QUEUE_CAPACITY)
 
     fun run() {
-        val client = createTwitterClient(listOf("Aurora")).also { it.connect() }
+        val client = createTwitterClient(termsToTrack).also { it.connect() }
         val producer = createKafkaProducer()
 
         Runtime.getRuntime().addShutdownHook(
@@ -84,6 +85,11 @@ class KafkaTweetProducer(
         properties.setProperty(ProducerConfig.RETRIES_CONFIG, Int.MAX_VALUE.toString())
         properties.setProperty(ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, "5")
 
+        // High throughput producer (at the expense of a bit of latency and CPU usage)
+        properties.setProperty(ProducerConfig.COMPRESSION_TYPE_CONFIG, KAFKA_PRODUCER_COMPRESSION_TYPE)
+        properties.setProperty(ProducerConfig.LINGER_MS_CONFIG, KAFKA_PRODUCER_LINGER_MS)
+        properties.setProperty(ProducerConfig.BATCH_SIZE_CONFIG, KAFKA_PRODUCER_BATCH_SIZE)
+
 
         return KafkaProducer<String, String>(properties)
     }
@@ -103,6 +109,11 @@ class KafkaTweetProducer(
         private const val MSG_QUEUE_CAPACITY = 100000
         private const val CLIENT_NAME = "Hosebird-Client-01"
         private const val POLLING_TIMEOUT_IN_SECONDS = 5L
+
+        private const val KAFKA_PRODUCER_COMPRESSION_TYPE = "snappy"
+        private const val KAFKA_PRODUCER_LINGER_MS = "20"
+        private const val KAFKA_PRODUCER_BATCH_SIZE = (32 * 1024).toString()
+
 
         private val logger = LoggerFactory.getLogger(KafkaTweetProducer::class.java)
     }
