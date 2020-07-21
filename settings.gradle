@@ -1,2 +1,8 @@
 rootProject.name = 'kafka-twitter-course'
 
+String[] modules = [
+    'kafka-producer-twitter'
+]
+
+include modules
+

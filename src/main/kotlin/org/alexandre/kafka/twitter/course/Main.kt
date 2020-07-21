@@ -1,7 +1,7 @@
 package org.alexandre.kafka.twitter.course
 
-import org.alexandre.kafka.twitter.course.configuration.Configuration.twitterProducer
+import org.alexandre.kafka.twitter.course.configuration.Configuration.tweetProducer
 
 fun main() {
-    twitterProducer.run()
+    tweetProducer.run()
 }

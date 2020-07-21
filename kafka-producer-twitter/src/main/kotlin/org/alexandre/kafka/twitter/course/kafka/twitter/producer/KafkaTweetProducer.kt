@@ -1,4 +1,4 @@
-package org.alexandre.kafka.twitter.course
+package org.alexandre.kafka.twitter.course.kafka.twitter.producer
 
 import com.twitter.hbc.ClientBuilder
 import com.twitter.hbc.core.Client
@@ -90,7 +90,6 @@ class KafkaTweetProducer(
         properties.setProperty(ProducerConfig.LINGER_MS_CONFIG, KAFKA_PRODUCER_LINGER_MS)
         properties.setProperty(ProducerConfig.BATCH_SIZE_CONFIG, KAFKA_PRODUCER_BATCH_SIZE)
 
-
         return KafkaProducer<String, String>(properties)
     }
 
@@ -99,7 +98,10 @@ class KafkaTweetProducer(
 
         this.send(record) { _, exception ->
             if (exception != null) {
-                logger.error("Error occurred while sending tweet", exception)
+                org.alexandre.kafka.twitter.course.kafka.twitter.producer.KafkaTweetProducer.logger.error(
+                    "Error occurred while sending tweet",
+                    exception
+                )
             }
         }
 
