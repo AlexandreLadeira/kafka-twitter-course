@@ -11,6 +11,7 @@ repositories {
 
 dependencies {
     implementation project(':kafka-producer-twitter')
+    implementation project(':kafka-consumer-elasticsearch')
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
     implementation "ch.qos.logback:logback-classic:$logbackVersion"

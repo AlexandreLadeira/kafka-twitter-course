@@ -10,4 +10,5 @@ dependencies {
     implementation "org.apache.kafka:kafka-clients:$kafkaClientsVersion"
     implementation "ch.qos.logback:logback-classic:$logbackVersion"
     implementation "org.elasticsearch.client:elasticsearch-rest-high-level-client:$elasticsearchClientVersion"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
 }
