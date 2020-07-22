@@ -1,5 +1,6 @@
 package org.alexandre.kafka.twitter.course.kafka.consumer.elasticsearch
 
+import com.google.gson.JsonParser
 import org.apache.http.HttpHost
 import org.apache.http.auth.AuthScope
 import org.apache.http.auth.UsernamePasswordCredentials
@@ -29,11 +30,12 @@ class ElasticsearchConsumer(
         val elasticsearchClient = createClient()
         val kafkaConsumer = createKafkaConsumer()
 
-
         while (true) {
             kafkaConsumer.poll(Duration.ofMillis(100)).forEach { record ->
-                val indexRequest = IndexRequest(INDEX)
-                    .source(record.value(), XContentType.JSON)
+                val tweet = record.value()
+                val indexRequest = IndexRequest(ELASTIC_SEARCH_INDEX)
+                    .id(tweet.extractTweetId())
+                    .source(tweet, XContentType.JSON)
 
                 val indexResponse = elasticsearchClient.index(indexRequest, RequestOptions.DEFAULT)
 
@@ -55,7 +57,7 @@ class ElasticsearchConsumer(
         }
 
         return RestHighLevelClient(
-            RestClient.builder(HttpHost(connUri.host, connUri.port, ELASTIC_SEARCH_SCHEMA))
+            RestClient.builder(HttpHost(connUri.host, connUri.port, ELASTIC_SEARCH_SCHEME))
                 .setHttpClientConfigCallback { httpAsyncClientBuilder ->
                     httpAsyncClientBuilder.setDefaultCredentialsProvider(credentialsProvider)
                         .setKeepAliveStrategy(DefaultConnectionKeepAliveStrategy())
@@ -75,15 +77,20 @@ class ElasticsearchConsumer(
         return KafkaConsumer<String, String>(properties).also {
             it.subscribe(listOf(kafkaTopic))
         }
-
     }
 
-    companion object {
-        private const val ELASTIC_SEARCH_SCHEMA = "https"
+    private fun String.extractTweetId(): String = JsonParser.parseString(this)
+            .asJsonObject
+            .get(TWEET_ID)
+            .asString
 
-        private const val INDEX = "tweets"
+    companion object {
+        private const val ELASTIC_SEARCH_SCHEME = "https"
+        private const val ELASTIC_SEARCH_INDEX = "tweets"
 
         private const val KAFKA_AUTO_OFFSET_RESET_CONFIG = "earliest"
+
+        private const val TWEET_ID = "id_str"
 
         private val logger = LoggerFactory.getLogger(ElasticsearchConsumer::class.java)
     }
