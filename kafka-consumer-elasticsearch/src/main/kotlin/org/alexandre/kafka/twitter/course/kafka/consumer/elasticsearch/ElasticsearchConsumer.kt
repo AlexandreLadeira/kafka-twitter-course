@@ -31,17 +31,24 @@ class ElasticsearchConsumer(
         val kafkaConsumer = createKafkaConsumer()
 
         while (true) {
-            kafkaConsumer.poll(Duration.ofMillis(100)).forEach { record ->
-                val tweet = record.value()
-                val indexRequest = IndexRequest(ELASTIC_SEARCH_INDEX)
-                    .id(tweet.extractTweetId())
-                    .source(tweet, XContentType.JSON)
+            kafkaConsumer.poll(Duration.ofMillis(100))
+                .also { logger.info("Received ${it.count()} records") }
+                .forEach { record ->
+                    val tweet = record.value()
+                    val indexRequest = IndexRequest(ELASTIC_SEARCH_INDEX)
+                        .id(tweet.extractTweetId())
+                        .source(tweet, XContentType.JSON)
 
-                val indexResponse = elasticsearchClient.index(indexRequest, RequestOptions.DEFAULT)
+                    val indexResponse = elasticsearchClient.index(indexRequest, RequestOptions.DEFAULT)
 
-                logger.info(indexResponse.id)
-                Thread.sleep(1000)
-            }
+                    logger.info(indexResponse.id)
+                    Thread.sleep(1000)
+                }
+
+            logger.info("Committing the offsets")
+            kafkaConsumer.commitSync()
+            logger.info("Offsets committed")
+            Thread.sleep(1000)
         }
     }
 
@@ -71,7 +78,9 @@ class ElasticsearchConsumer(
             it.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer::class.qualifiedName)
             it.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer::class.qualifiedName)
             it.setProperty(ConsumerConfig.GROUP_ID_CONFIG, kafkaConsumerGroupId)
-            it.setProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, KAFKA_AUTO_OFFSET_RESET_CONFIG)
+            it.setProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, KAFKA_AUTO_OFFSET_RESET)
+            it.setProperty(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, KAFKA_ENABLE_AUTO_COMMIT)
+            it.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, KAFKA_MAX_POLL_RECORDS)
         }
 
         return KafkaConsumer<String, String>(properties).also {
@@ -80,15 +89,18 @@ class ElasticsearchConsumer(
     }
 
     private fun String.extractTweetId(): String = JsonParser.parseString(this)
-            .asJsonObject
-            .get(TWEET_ID)
-            .asString
+        .asJsonObject
+        .get(TWEET_ID)
+        .asString
 
     companion object {
         private const val ELASTIC_SEARCH_SCHEME = "https"
         private const val ELASTIC_SEARCH_INDEX = "tweets"
 
-        private const val KAFKA_AUTO_OFFSET_RESET_CONFIG = "earliest"
+        private const val KAFKA_AUTO_OFFSET_RESET = "earliest"
+        private const val KAFKA_ENABLE_AUTO_COMMIT = "false"
+        private const val KAFKA_MAX_POLL_RECORDS = "10"
+
 
         private const val TWEET_ID = "id_str"
 
