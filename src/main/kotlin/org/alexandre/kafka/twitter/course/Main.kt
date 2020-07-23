@@ -4,6 +4,6 @@ import org.alexandre.kafka.twitter.course.configuration.Configuration.elasticSea
 import org.alexandre.kafka.twitter.course.configuration.Configuration.tweetProducer
 
 fun main() {
-//    tweetProducer.run()
-    elasticSearchConsumer.run()
+    Thread { tweetProducer.run() }.start()
+    Thread { elasticSearchConsumer.run() }.start()
 }

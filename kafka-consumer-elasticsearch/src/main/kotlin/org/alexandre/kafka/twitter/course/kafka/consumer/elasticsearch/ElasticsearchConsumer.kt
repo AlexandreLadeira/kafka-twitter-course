@@ -9,6 +9,7 @@ import org.apache.http.impl.client.DefaultConnectionKeepAliveStrategy
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.common.serialization.StringDeserializer
+import org.elasticsearch.action.bulk.BulkRequest
 import org.elasticsearch.action.index.IndexRequest
 import org.elasticsearch.client.RequestOptions
 import org.elasticsearch.client.RestClient
@@ -30,25 +31,38 @@ class ElasticsearchConsumer(
         val elasticsearchClient = createClient()
         val kafkaConsumer = createKafkaConsumer()
 
+        Runtime.getRuntime().addShutdownHook(
+            Thread {
+                logger.info("Stopping ElasticsearchConsumer...")
+                kafkaConsumer.close()
+                elasticsearchClient.close()
+                logger.info("ElasticsearchConsumer stopped")
+            }
+        )
+
         while (true) {
-            kafkaConsumer.poll(Duration.ofMillis(100))
-                .also { logger.info("Received ${it.count()} records") }
-                .forEach { record ->
-                    val tweet = record.value()
+            val bulkRequest = BulkRequest()
+            val records = kafkaConsumer.poll(Duration.ofMillis(100))
+            logger.info("Received ${records.count()} records")
+            records.forEach { record ->
+                val tweet = record.value()
+                try {
                     val indexRequest = IndexRequest(ELASTIC_SEARCH_INDEX)
                         .id(tweet.extractTweetId())
                         .source(tweet, XContentType.JSON)
-
-                    val indexResponse = elasticsearchClient.index(indexRequest, RequestOptions.DEFAULT)
-
-                    logger.info(indexResponse.id)
-                    Thread.sleep(1000)
+                    bulkRequest.add(indexRequest)
+                } catch (e: Exception) {
+                    logger.warn("Skipping malformed data: $tweet")
                 }
+            }
 
-            logger.info("Committing the offsets")
-            kafkaConsumer.commitSync()
-            logger.info("Offsets committed")
-            Thread.sleep(1000)
+            if (records.count() > 0) {
+                elasticsearchClient.bulk(bulkRequest, RequestOptions.DEFAULT)
+                logger.info("Committing the offsets")
+                kafkaConsumer.commitSync()
+                logger.info("Offsets committed")
+                Thread.sleep(1000)
+            }
         }
     }
 

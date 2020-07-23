@@ -34,7 +34,7 @@ class KafkaTweetProducer(
 
         Runtime.getRuntime().addShutdownHook(
             Thread {
-                logger.info("Stopping TwitterProducer application...")
+                logger.info("Stopping TwitterProducer...")
                 client.stop()
                 producer.close()
                 logger.info("TwitterProducer stopped")
@@ -47,6 +47,7 @@ class KafkaTweetProducer(
                     ?.let {
                         logger.info("Sending tweet: $it")
                         producer.sendTweet(it)
+                        Thread.sleep(1000)
                     }
             } catch (e: InterruptedException) {
                 e.printStackTrace()
