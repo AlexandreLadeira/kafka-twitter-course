@@ -2,7 +2,8 @@ rootProject.name = 'kafka-twitter-course'
 
 String[] modules = [
     'kafka-producer-twitter',
-    'kafka-consumer-elasticsearch'
+    'kafka-consumer-elasticsearch',
+    'kafka-streams-filter-tweets'
 ]
 
 include modules

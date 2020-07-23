@@ -1,0 +1,13 @@
+plugins {
+    id "org.jetbrains.kotlin.jvm"
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation "org.apache.kafka:kafka-streams:$kafkaStreamsVersion"
+    implementation "ch.qos.logback:logback-classic:$logbackVersion"
+    implementation "com.google.code.gson:gson:$gsonVersion"
+}
